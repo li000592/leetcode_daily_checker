@@ -76,7 +76,7 @@ export default function Index() {
 
       <ul>
         <li>User: Haorong</li>
-        <li>Week Check Count: {weekCheckedCount}/7</li>
+        <li>Week Check Count: {weekCheckedCount}/10</li>
         <br />
 
         <li>History:</li>
