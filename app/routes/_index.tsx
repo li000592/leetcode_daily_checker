@@ -1,4 +1,5 @@
 import type { MetaFunction } from "@netlify/remix-runtime";
+import { useState, useEffect } from "react";
 import { json } from "@remix-run/node";
 import {
   isRouteErrorResponse,
@@ -52,38 +53,79 @@ export const loader = async () => {
     return json({ error: "Failed to fetch data" }, { status: 500 });
   }
 };
+
 export default function Index() {
-  const invoice = useLoaderData<typeof loader>();
-  console.log(invoice);
+  const data = useLoaderData<typeof loader>();
+  const [weekCheckedCount, setWeekCheckedCount] = useState(0);
+  useEffect(() => {
+    const endOfLastweek = getLastTimeOfLastWeek();
+    setWeekCheckedCount(
+      data.filter((row) => {
+        row.timestamp - endOfLastweek;
+      }).length
+    );
+
+    return () => {};
+  }, []);
+
+  console.log(data);
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix</h1>
+      <h1>Leetcode Daily Checker</h1>
+
       <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
+        <li>User: Haorong</li>
+        <li>Week Check Count: {weekCheckedCount}/7</li>
+        <br />
+
+        <li>History:</li>
+        {data.map((row, index) => (
+          <ul key={"kk" + index}>
+            <li>Question: {row.title}</li>
+            <li>Date: {convertToTorontoTime(row.timestamp)}</li>
+          </ul>
+        ))}
       </ul>
     </div>
   );
+}
+
+function convertToTorontoTime(unixTimestamp: any) {
+  // Convert the Unix timestamp to milliseconds
+  const date = new Date(unixTimestamp * 1000);
+
+  // Format the date for Toronto time
+  const options = {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true, // Use 12-hour time format
+  };
+
+  // Convert to localized string
+  return date.toLocaleString("en-US", options);
+}
+
+// Example usage
+const unixTimestamp = 1624569771;
+const torontoTime = convertToTorontoTime(unixTimestamp);
+console.log(torontoTime);
+
+function getLastTimeOfLastWeek() {
+  // Get the current date
+  const now = new Date();
+
+  // Calculate the last Sunday (previous week)
+  const lastSunday = new Date(now);
+  lastSunday.setDate(now.getDate() - now.getDay() - 7); // Go back to the last Sunday
+
+  // Set the time to the last moment of that day
+  lastSunday.setHours(23, 59, 59, 999);
+
+  return lastSunday;
 }
