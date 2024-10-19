@@ -77,6 +77,7 @@ export default function Index() {
       <ul>
         <li>User: Haorong</li>
         <li>Week Check Count: {weekCheckedCount}/10</li>
+        <li>days of next week: {daysUntilNextWeek()}</li>
         <br />
 
         <li>Recent AC:</li>
@@ -123,4 +124,14 @@ function getLastTimeOfLastWeek() {
   lastSunday.setHours(23, 59, 59, 999);
 
   return lastSunday;
+}
+
+function daysUntilNextWeek() {
+  const now = new Date();
+  const currentDay = now.getDay(); // Get current day of the week (0 = Sunday, 6 = Saturday)
+
+  // Calculate days until next Sunday (next week)
+  const daysLeft = 7 - currentDay;
+
+  return daysLeft;
 }
