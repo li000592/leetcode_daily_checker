@@ -56,12 +56,12 @@ export const loader = async () => {
 
 export default function Index() {
   const data = useLoaderData<typeof loader>();
-  const [weekCheckedCount, setWeekCheckedCount] = useState(0);
+  const [weekCheckedCount, setWeekCheckedCount] = useState("N/A");
   useEffect(() => {
-    const endOfLastweek = getLastTimeOfLastWeek();
+    const endOfLastweek = getLastTimeOfLastWeek() / 1000;
     setWeekCheckedCount(
       data.filter((row) => {
-        row.timestamp - endOfLastweek;
+        return ( +row.timestamp - +endOfLastweek) > 0;
       }).length
     );
 
@@ -79,7 +79,7 @@ export default function Index() {
         <li>Week Check Count: {weekCheckedCount}/10</li>
         <br />
 
-        <li>History:</li>
+        <li>Recent AC:</li>
         {data.map((row, index) => (
           <ul key={"kk" + index}>
             <li>Question: {row.title}</li>
@@ -110,11 +110,6 @@ function convertToTorontoTime(unixTimestamp: any) {
   // Convert to localized string
   return date.toLocaleString("en-US", options);
 }
-
-// Example usage
-const unixTimestamp = 1624569771;
-const torontoTime = convertToTorontoTime(unixTimestamp);
-console.log(torontoTime);
 
 function getLastTimeOfLastWeek() {
   // Get the current date
