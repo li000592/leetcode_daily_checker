@@ -1,137 +1,77 @@
 import type { MetaFunction } from "@netlify/remix-runtime";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { json } from "@remix-run/node";
 import {
   isRouteErrorResponse,
   useLoaderData,
+  useNavigate,
   useRouteError,
 } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
+    { title: "LeetCode Daily Checker" },
     { name: "description", content: "Welcome to Remix!" },
   ];
 };
 
-export const loader = async () => {
-  try {
-    const response = await fetch("https://leetcode.com/graphql/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `
-          query recentAcSubmissions($username: String!, $limit: Int!) {
-            recentAcSubmissionList(username: $username, limit: $limit) {
-              id
-              title
-              titleSlug
-              timestamp
-            }
-          }
-        `,
-        variables: {
-          username: "li000592", // Replace with the desired username
-          limit: 15,
-        },
-      }),
-    });
+import type { loader } from "./api.home";
+import {
+  convertToTorontoTime,
+  daysUntilNextWeek,
+  getLastTimeOfLastWeek,
+} from "~/utils";
+import PersonInfo from "~/components/PersonInfo";
 
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
+/**
+ * @description Here we simply re-export the loader used in our resource route
+ * which allows this route to fetch from the GraphQL API directly
+ */
+export { loader } from "./api.home";
 
-    const data = await response.json();
-    const submissions = data.data.recentAcSubmissionList;
-
-    return json(submissions); // Return the submissions in JSON format
-  } catch (error) {
-    console.error("Failed to fetch submissions:", error);
-    // Return an error response if fetching fails
-    return json({ error: "Failed to fetch data" }, { status: 500 });
-  }
-};
+/**
+ * @description This route demonstrates fetching a list of characters from
+ * a GraphQL API.
+ */
 
 export default function Index() {
-  const data = useLoaderData<typeof loader>();
+  const { users } = useLoaderData<typeof loader>();
+  console.log(users);
+
   const [weekCheckedCount, setWeekCheckedCount] = useState("N/A");
-  useEffect(() => {
-    const endOfLastweek = getLastTimeOfLastWeek() / 1000;
-    setWeekCheckedCount(
-      data.filter((row) => {
-        return ( +row.timestamp - +endOfLastweek) > 0;
-      }).length
-    );
+  const navigate = useNavigate();
+  const userNameInput = useRef(null);
+  // const recentAcSubmissionList = data.recentAcSubmissionList;
+  // useEffect(() => {
+  //   const endOfLastweek = getLastTimeOfLastWeek() / 1000;
+  //   setWeekCheckedCount(
+  //     recentAcSubmissionList.filter((row) => {
+  //       return +row.timestamp - +endOfLastweek > 0;
+  //     }).length
+  //   );
 
-    return () => {};
-  }, []);
+  //   return () => {};
+  // }, []);
 
-  console.log(data);
+  const handleGo = (ev) => {
+    navigate(`/user/${userNameInput?.current?.value}` || "");
+  };
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <h1>Leetcode Daily Checker</h1>
-
-      <ul>
-        <li>User: Haorong</li>
-        <li>Week Check Count: {weekCheckedCount}/10</li>
-        <li>days of next week: {daysUntilNextWeek()}</li>
-        <br />
-
-        <li>Recent AC:</li>
-        {data.map((row, index) => (
-          <ul key={"kk" + index}>
-            <li>Question: {row.title}</li>
-            <li>Date: {convertToTorontoTime(row.timestamp)}</li>
-          </ul>
+      <input
+        placeholder="leetcode user id"
+        ref={userNameInput}
+        id="username-input"
+        type="text"
+      ></input>
+      <button onClick={handleGo}>go</button>
+      <div style={{ display: "flex" }}>
+        {users.map((obj) => (
+          <PersonInfo data={obj} />
         ))}
-      </ul>
+      </div>
     </div>
   );
-}
-
-function convertToTorontoTime(unixTimestamp: any) {
-  // Convert the Unix timestamp to milliseconds
-  const date = new Date(unixTimestamp * 1000);
-
-  // Format the date for Toronto time
-  const options = {
-    timeZone: "America/Toronto",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true, // Use 12-hour time format
-  };
-
-  // Convert to localized string
-  return date.toLocaleString("en-US", options);
-}
-
-function getLastTimeOfLastWeek() {
-  // Get the current date
-  const now = new Date();
-
-  // Calculate the last Sunday (previous week)
-  const lastSunday = new Date(now);
-  lastSunday.setDate(now.getDate() - now.getDay() - 7); // Go back to the last Sunday
-
-  // Set the time to the last moment of that day
-  lastSunday.setHours(23, 59, 59, 999);
-
-  return lastSunday;
-}
-
-function daysUntilNextWeek() {
-  const now = new Date();
-  const currentDay = now.getDay(); // Get current day of the week (0 = Sunday, 6 = Saturday)
-
-  // Calculate days until next Sunday (next week)
-  const daysLeft = 7 - currentDay;
-
-  return daysLeft;
 }
