@@ -23,5 +23,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   };
 
   const res = await fetchFromGraphQL(getrecentAcSubmissionListQuery, variables);
-  return json({ ...(await res.json()), id });
+  const result = await res.json();
+  return json({ username: id, submissions: result.data.recentAcSubmissionList });
 };

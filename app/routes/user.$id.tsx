@@ -11,6 +11,7 @@ import {
   daysUntilNextWeek,
   getLastTimeOfLastWeek,
 } from "~/utils";
+import PersonInfo from "~/components/PersonInfo";
 
 /**
  * @description Here we simply re-export the loader used in our resource route
@@ -29,41 +30,14 @@ export { loader } from "./api.recentAcSubmissionList";
  * the Remix loader & route params.
  */
 export default function User() {
-  const { data, id } = useLoaderData<typeof loader>();
-  const [weekCheckedCount, setWeekCheckedCount] = useState("N/A");
-  const recentAcSubmissionList = data.recentAcSubmissionList;
-
-  useEffect(() => {
-    const endOfLastweek = getLastTimeOfLastWeek() / 1000;
-    setWeekCheckedCount(
-      recentAcSubmissionList.filter((row) => {
-        return +row.timestamp - +endOfLastweek > 0;
-      }).length
-    );
-
-    return () => {};
-  }, []);
+  const data = useLoaderData<typeof loader>();
 
   return (
     <main className="ui-main">
       <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
         <h1>Leetcode Daily Checker</h1>
         <Link to={"/"}><p>home</p></Link>
-        <ul>
-          <li>User: {id}</li>
-          <li>Week Check Count: {weekCheckedCount}/10</li>
-          <li>days of next week: {daysUntilNextWeek()}</li>
-          <br />
-
-          <li>Recent AC:</li>
-          {recentAcSubmissionList.map((row, index) => (
-            <ul key={"kk" + index}>
-              <li>Question: {row.title}</li>
-              <li>Date: {convertToTorontoTime(row.timestamp)}</li>
-            </ul>
-          ))}
-        </ul>
-
+        <PersonInfo data={data} />
       </div>
     </main>
   );
