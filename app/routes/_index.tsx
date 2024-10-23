@@ -11,7 +11,7 @@ import {
 export const meta: MetaFunction = () => {
   return [
     { title: "LeetCode Daily Checker" },
-    { name: "description", content: "Welcome to Remix!" },
+    { name: "description", content: "The App can get your leetcode progress every day" },
   ];
 };
 
